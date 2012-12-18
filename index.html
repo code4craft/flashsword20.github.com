@@ -182,8 +182,8 @@
 
 <table>
     <tr>
-        <td>Operation</td>
-        <td>Total(ms)</td>
+        <td width="100">Operation</td>
+        <td width="100">Total(ms)</td>
         <td>Average(ms)</td>
     </tr>
     <tr>
@@ -205,8 +205,8 @@
 
 <table>
     <tr>
-        <td>Operation</td>
-        <td>Total(ms)</td>
+        <td width="100">Operation</td>
+        <td width="100">Total(ms)</td>
         <td>Average(ms)</td>
     </tr>
     <tr>
@@ -222,7 +222,7 @@
 </table>
 
 
-<p>可以看到，ehcache的set比WeakHashMap耗时提升了10倍，但是get的效率是差不多的。因为cache的使用场景，一般都是读远大于写，所以ehcache是可以胜任作为一个优秀的进程内缓存的。回去需要调研一下昨天失败的原因。</p>
+<p>可以看到，ehcache的set比WeakHashMap耗时提升了10倍，但是get的效率是差不多的。因为cache的使用场景，一般都是读远大于写，所以ehcache是一个胜任的进程内缓存。回去需要调研一下昨天失败的原因。</p>
 
 <p>出于兴趣，又使用memcached做了一个测试。spy的客户端似乎会将字符串做压缩，最后将40k的字符串压缩到19k，但是结果仍然是毫秒级的，这也证明了涉及到网络IO的操作，会慢上几个数量级。</p>
 
@@ -230,8 +230,8 @@
 
 <table>
     <tr>
-        <td>Operation</td>
-        <td>Total(ms)</td>
+        <td width="100">Operation</td>
+        <td width="100">Total(ms)</td>
         <td>Average(ms)</td>
     </tr>
     <tr>
