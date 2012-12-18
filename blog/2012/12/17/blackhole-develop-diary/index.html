@@ -171,15 +171,90 @@
 
 <hr />
 
+<h4>2012-12-18</h4>
+
+<p>早上做了ehcache的benchmark，set和get一个40k的字符串(压缩到19k)到ehcache。10000次set和get操作，每次都使用不同的key。</p>
+
+<p>ehcache的测试结果(10000次)：</p>
+
+<table>
+    <tr>
+        <td>Operation</td>
+        <td>Total(ms)</td>
+        <td>Average(ms)</td>
+    </tr>
+    <tr>
+        <td>set</td>
+        <td>34</td>
+        <td>0.0034</td>
+    </tr>
+    <tr>
+        <td>get</td>
+        <td>6</td>
+        <td>0.00065</td>
+    </tr>
+</table>
+
+
+<p>结果相当令人满意。</p>
+
+<p>作为对比，使用JDK提供的简单Cache类型WeakHashMap做一个测试(10000次)：</p>
+
+<table>
+    <tr>
+        <td>Operation</td>
+        <td>Total(ms)</td>
+        <td>Average(ms)</td>
+    </tr>
+    <tr>
+        <td>set</td>
+        <td>4</td>
+        <td>4e-4</td>
+    </tr>
+    <tr>
+        <td>get</td>
+        <td>5</td>
+        <td>5e-4</td>
+    </tr>
+</table>
+
+
+<p>可以看到，ehcache的set比WeakHashMap耗时提升了10倍，但是get的效率是差不多的。因为cache的使用场景，一般都是读远大于写，所以ehcache是可以胜任作为一个优秀的进程内缓存的。回去需要调研一下昨天失败的原因。</p>
+
+<p>出于兴趣，又使用memcached做了一个测试。spy的客户端似乎会将字符串做压缩，最后将40k的字符串压缩到19k，但是结果仍然是毫秒级的，这也证明了涉及到网络IO的操作，会慢上几个数量级。</p>
+
+<p>memcached的测试结果(1000次)：</p>
+
+<table>
+    <tr>
+        <td>Operation</td>
+        <td>Total(ms)</td>
+        <td>Average(ms)</td>
+    </tr>
+    <tr>
+        <td>set</td>
+        <td>4796</td>
+        <td>4.796</td>
+    </tr>
+    <tr>
+        <td>get</td>
+        <td>1726</td>
+        <td>1.726</td>
+    </tr>
+</table>
+
+
+<hr />
+
 <h4>持续更新</h4>
 
 <hr />
 
 <h3>心得</h3>
 
-<p>这个项目选择相当有挑战，基本上就是自己开发一个服务器。很重要的一个心得：从零开始开发，开始尝试将需要的组件都自己简单实现，后面再引入框架级的东西。</p>
+<p>这个项目选择相当有挑战，基本上就是自己开发一个服务器。很重要的一个心得：从零开始开发，开始尝试将需要的组件都自己简单实现，后面再引入框架级的东西，可以更好的理解J2EE世界的工具。</p>
 
-<p>比如开始准备实现一个简单的GlobalFactory，做Spring做的事，只是省去繁琐的xml配置（而且印象中Spring启动实在是太慢了）。后来发现，依赖管理是相当复杂的一块。后来只好引入了Spring，发现Spring本身启动并不慢，而且使用annotation代替xml之后，也相当容易配置，重构起来也很方便，一改我在公司项目开发中，Spring又慢又笨重的印象。</p>
+<p>比如开始准备实现一个简单的GlobalFactory，做Spring做的事，只是省去繁琐的xml配置（而且印象中Spring启动实在是太慢了）。后来发现，依赖管理是相当复杂的一块，特别是初始化的时候的顺序。后来只好引入了Spring，发现Spring本身启动并不慢，而且使用annotation代替xml之后，也相当容易配置，重构起来也很方便，一改我在公司项目开发中，Spring又慢又笨重的印象。</p>
 
 <p>再比如项目需要做到一个可外部管理应用的东西，当时还得意洋洋的搞了个项目叫wifesays，用的是TCP文本协议。后来才发现，Java有个模块JMX，专门就是用来干这事的。不过之前很难理解JMX，现在发现容易理解很多。</p>
 </div>
