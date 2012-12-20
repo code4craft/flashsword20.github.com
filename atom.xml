@@ -4,7 +4,7 @@
   <title><![CDATA[代码人生]]></title>
   <link href="http://flashsword20.github.com/atom.xml" rel="self"/>
   <link href="http://flashsword20.github.com/"/>
-  <updated>2012-12-19T09:36:53+08:00</updated>
+  <updated>2012-12-20T20:49:01+08:00</updated>
   <id>http://flashsword20.github.com/</id>
   <author>
     <name><![CDATA[黄亿华]]></name>
@@ -186,9 +186,45 @@
 
 <h4>2012-12-19</h4>
 
-<p>今天上班的路上在对比Tomcat和Jety的连接模型。Tomcat使用多线程处理请求，一个请求一个线程；Jetty则采用NIO。有文章说，对于逻辑复杂、处理时间较长的连接，Tomcat有优势，但是对于处理时间较短的连接，Jetty有优势。</p>
+<p>今天上班的路上在对比Tomcat和Jety的连接模型。Tomcat使用多线程处理请求，一个请求一个线程；Jetty则采用NIO。有文章说，对于逻辑复杂、处理时间较长的连接，Tomcat有优势，但是对于处理时间较短的连接，Jetty有优势。毫无疑问DNS的处理时间是很短的，看来把之前connector部分多线程的处理模型换成NIO的，应该性能会有一些提升。以后几天一个大的开发计划，就是调研Java NIO和Jetty里的实现，写一个完整的NIO connector。Cache机制开发延后。</p>
 
-<p>毫无疑问DNS的处理时间是很短的，看来把之前connector部分多线程的处理模型换成NIO的，应该性能会有一些提升。这几天一个大的开发计划，就是调研Java NIO和Jetty里的实现，写一个完整的NIO connector。</p>
+<p>上午在网上找了点资料，磕磕碰碰把基于NIO的服务器模型搭出来了。因为DNS使用的是UDP协议，同时数据量很小，所以NIO并没有起到理想中的效果。</p>
+
+<p>主要服务器部分代码在<a href="https://github.com/flashsword20/blackhole/blob/nio/src/main/java/us/codecraft/blackhole/connector/UDPSocketMonitor.java">https://github.com/flashsword20/blackhole/blob/nio/src/main/java/us/codecraft/blackhole/connector/UDPSocketMonitor.java</a>。测试之后的效果让人失望，NIO效率比多线程+BIO更低，只有24000~28000qps，并且因为代码不熟悉，系统变得很不稳定。所以暂时保留到NIO分支了。</p>
+
+<p>结论是这样的：</p>
+
+<p>一个DNS query的包大小大约是几十byte，而response也不超过100 byte，如此小的传输量，同时因为UDP包也不涉及连接建立等东西，发送速度也很快，所以NIO发挥不了效率。</p>
+
+<p>晚上回家，尝试加入cache机制：</p>
+
+<p>使用了ehcache，但是死活都存在UDP包乱序的问题。后来发现</p>
+
+<p><strong>对于同一key，ehcache获取出来的对象总是同一个，这也是进程内缓存的特殊之处，不妨将其想想为一个Map</strong></p>
+
+<p>而我会尝试改变其ID值，结果就导致看起来ID变了，其实也改变了其他线程获取到的值，出现了不确定性！</p>
+
+<p>后来改进了数据结构，尝试写一个CopyOnWriteMessage(Message是dnsjava中DNS报文的抽象类)，结果因为其很多方法都是私有，所以失败了。后来构建了一个UDPPackage的对象，尝试将byte[]用CopyOnWrite和访问锁的方式解决并发问题，测试结果CopyOnWrite性能会好一点，这也是因为数据量较小，而且Arrays.copyOf是本地方法吧。</p>
+
+<p>后来测试，值得高兴的是有缓存的情况下，转发模式效率达到了40000qps，可喜可贺！</p>
+
+<p>家里连公司，benchmark里，UDP丢包率大概在10%，效果相当差，所以说网络才是第一要素！</p>
+
+<hr />
+
+<h4>2012-12-20</h4>
+
+<p>今天尝试使用Selector改造转发逻辑，结果可耻的失败了！因为<strong>Selector不是线程安全的</strong>，试图多个线程进行register会导致严重的问题，这也是为什么基于事件的IO模型都不怎么支持多线程的原因，太难做了。</p>
+
+<p>后来尝试用Java的Future机制来实现超时。我们知道，Java的FutureTask需要一个执行的线程池。如果每次都new出来当然没有问题，但是经测试性能开销较大(qps被降到了4000)。后来尝试复用同一大线程池，发现请求多了之后，总是会超时！</p>
+
+<p>然后jstack查看发现，很多线程仍然卡在了Callable.call方法，就是我们常说的异常把线程抛死了！原来TimeoutException也会导致线程抛出异常但是无法回收。解决方法：使用future.cancel()。</p>
+
+<p>这也说明，线程抛出异常死掉时，jstack查看到的是它抛出异常时的执行栈。</p>
+
+<p>加入超时机制后，程序算是稳定了，这周末弄个1.0版吧，以后开始写ReleaseNotes。</p>
+
+<p>今天看了一下代码，作为一个开源项目，似乎风格不是那么优雅，很多长函数，注释也不完整。顶多对架构和原理感兴趣，代码的OOP神马的，这方面完全提不起兴趣来啊。</p>
 
 <hr />
 
