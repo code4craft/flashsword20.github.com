@@ -298,6 +298,46 @@
 
 <p>今天看了一下代码，作为一个开源项目，似乎风格不是那么优雅，很多长函数，注释也不完整。顶多对架构和原理感兴趣，代码的OOP神马的，这方面完全提不起兴趣来啊。</p>
 
+<p>在自己的MBP上也编译了一个queryperf，测试性能达到55000qps，而拦截模式只有35000，果然还是缓存byte[]更给力啊。因此把拦截模式也加入了cache。</p>
+
+<p>晚上实验BlackHole作为DNS实装了！DNS设置为127.0.0.1，转发DNS设为之前的DNS。目前表现稳定。</p>
+
+<hr />
+
+<h4>2012-12-21</h4>
+
+<p>今天，太阳照常升起，逃过了一劫，那就开始新的生命吧。</p>
+
+<p>为了把BlackHole推广出去，想要做一个MacOS下的包。调研了mac开机启动的东西，将启动程序写成了一个plist文件，放在/Library/LaunchDaemons下面，脚本是这样的：</p>
+
+<pre><code>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"&gt;
+&lt;plist version="1.0"&gt;
+  &lt;dict&gt;
+      &lt;key&gt;Label&lt;/key&gt;
+      &lt;string&gt;blackhole.init&lt;/string&gt;
+      &lt;key&gt;ProgramArguments&lt;/key&gt;
+      &lt;array&gt;
+        &lt;string&gt;/usr/local/blackhole/blackhole-start.sh&lt;/string&gt;
+      &lt;/array&gt;
+        &lt;key&gt;KeepAlive&lt;/key&gt;
+        &lt;false/&gt;
+      &lt;key&gt;RunAtLoad&lt;/key&gt;
+        &lt;true/&gt;
+        &lt;key&gt;StandardErrorPath&lt;/key&gt;
+        &lt;string&gt;/tmp/blackhole.err&lt;/string&gt;
+        &lt;key&gt;StandardOutPath&lt;/key&gt;
+        &lt;string&gt;/tmp/blackhole.out&lt;/string&gt;
+        &lt;key&gt;UserName&lt;/key&gt;
+        &lt;string&gt;root&lt;/string&gt;
+  &lt;/dict&gt;
+&lt;/plist&gt;
+</code></pre>
+
+<p>事实证明UserName=root那段必须加上，要不然不会用root权限启动，然后就会失败！</p>
+
+<p>重启后一切正常，开始使用BlackHole作为DNS服务器，考察稳定性。</p>
+
 <hr />
 
 <h4>持续更新</h4>
