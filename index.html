@@ -371,6 +371,68 @@
 
 <p>这又涉及到业务的东西了。上班写一堆业务，下班不想写业务啊写业务。想做一个使用Selector，多个DNS服务器同时forward，使用最快的结果作为响应。但是后来测试，用途不大。</p>
 
+<p>自己在这里研究这些意义不大，这应该是一个很common的问题。晚上研究一下load balance和failover的东西。</p>
+
+<p>感觉这几天写的load balance的东西都太不成熟，需要等研究一下相关机制之后，再来继续深入。</p>
+
+<p>今天也没有想到其他的优化点了。开发先到这里吧，以后做一点推广方面的工作吧，写一个站点，然后把东西挂上去。老薛主机的下载速度太慢了，看来要找个地方把文件放进去。</p>
+
+<hr />
+
+<h4>2012-12-24</h4>
+
+<p>今天写的不能叫开发日记了，主要是学习，主要想要学习一些load balance的东西。</p>
+
+<p>看了LVS社区的一些东西，系统涉及的目标：透明性、可伸缩性、高可用性和易管理性，跟我想的还不太一样。</p>
+
+<p>VIP技术：无缝的单点切换。</p>
+
+<p>这里看了一篇章文嵩博士自己发表的<a href="http://zh.linuxvirtualserver.org/node/98">LVS集群系统网络核心原理分析</a>，其中转发的原理有三种模式，可以理解为都是修改IP包内容，然后使用户与Real Server实现通信，看上去就像直接和Load Balancer通信一样。</p>
+
+<p>调度算法才是我想研究的重点，LVS实现了八中负载均衡调度算法，总结下来分为三种策略：
+轮循调度(Round-Robin)，最小连接数和哈希。</p>
+
+<hr />
+
+<h4>2012-12-25</h4>
+
+<p>今天想了想，如果把BlackHole作为一个拦截工具的话，一直开启DNS服务器也不合适，所以就想写一个模块，在启动时修改OS的DNS配置，关闭时再把DNS配置切换回去，看看是不是可行？这个工具我另建了一个项目叫<a href="https://github.com/flashsword20/dnstools">dnstools</a>。实现了一些windows下的DNS切换，用的是Java外部命令调用。</p>
+
+<p>研究了下Mac下DNS的修改方法。Mac下虽然有/etc/resovled.conf文件，但是这个文件是自动生成的，好像也不起什么作用。后来搜到一个帖子<a href="http://hints.macworld.com/article.php?story=20050621051643993">Configure DNS lookups from the terminal </a>讲的比较详细。我大概整理下帖子的内容：</p>
+
+<p>首先，Mac下网络配置存在/Library/Preferences/SystemConfiguration/preferences.plist这个文件中，每次系统重启会读取这个文件。但是尝试直接修改文件后，发现配置不能立刻生效，搜索之后，也没有找到好的办法使它立刻生效。</p>
+
+<p>还有一个办法是使用scutil。scutil修改的结果在下次重启后会失效，希望持久化修改，请修改/Library/Preferences/SystemConfiguration/preferences.plist文件。网上还搜到一篇关于使用scutil修改DNS的病毒，很好玩。这里贴上帖子里的一段修改DNS的代码，感谢原作者<a href="http://hints.macworld.com/users.php?mode=profile&amp;uid=1035540">emzy</a>(10.7下测试通过)：</p>
+
+<pre><code>#!/bin/bash
+
+# Script is used to set the Nameserver Lookup under Max OS X 10.4 with the Console
+# Script by Stephan Oeste &lt;stephan@oeste.de&gt;
+
+if [ $# -lt 2 ] ; then
+echo "Use: $0 &lt;domain&gt; &lt;1.Nameserver&gt; [2.Nameserver]"
+echo "Example Use: $0 example.tld 1.2.3.4 1.2.3.5"
+exit 1
+fi
+
+PSID=$( (scutil | grep PrimaryService | sed -e 's/.*PrimaryService : //')&lt;&lt; EOF
+open
+get State:/Network/Global/IPv4
+d.show
+quit
+EOF
+)
+
+scutil &lt;&lt; EOF
+open
+d.init
+d.add ServerAddresses * $2 $3 
+d.add DomainName $1
+set State:/Network/Service/$PSID/DNS
+quit
+EOF
+</code></pre>
+
 <hr />
 
 <h4>持续更新</h4>
