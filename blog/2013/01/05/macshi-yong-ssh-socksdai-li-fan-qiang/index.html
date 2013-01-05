@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Category: career - 代码人生</title>
+  <title>Mac使用ssh socks代理翻墙 - 代码人生</title>
   <meta name="author" content="黄亿华">
 
   
-  <meta name="description" content="Category: career">
+  <meta name="description" content="听说最近VPN封的厉害，都改用ssh翻墙了。在Mac下实验了一把，总算鼓捣成功。总结如下： 使用ssh作为socks proxy： 有很多软件都可以实现这个功能，例如Secret Socks，SSH Tunnerl Manager。Secret Socks不支持自动连接，同时每次都要输入密码， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://flashsword20.github.comblog/categories/career/">
+  <link rel="canonical" href="http://flashsword20.github.com/blog/2013/01/05/macshi-yong-ssh-socksdai-li-fan-qiang/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -63,35 +63,103 @@
   <div id="main">
     <div id="content">
       <div>
-<article role="article">
+<article class="hentry" role="article">
   
   <header>
-    <h1 class="entry-title">Category: Career</h1>
+    
+      <h1 class="entry-title">Mac使用ssh Socks代理翻墙</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-05T21:46:00+08:00" pubdate data-updated="true">Jan 5<span>th</span>, 2013</time>
+        
+      </p>
     
   </header>
-  
-  <div id="blog-archives" class="category">
 
 
+<div class="entry-content"><p>听说最近VPN封的厉害，都改用ssh翻墙了。在Mac下实验了一把，总算鼓捣成功。总结如下：</p>
 
-  
-  <h2>2012</h2>
+<p>使用ssh作为socks proxy：</p>
 
-<article>
-  
-<h1><a href="/blog/2012/12/11/about-career/">about-career</a></h1>
-<time datetime="2012-12-11T20:06:00+08:00" pubdate><span class='month'>Dec</span> <span class='day'>11</span> <span class='year'>2012</span></time>
+<p>有很多软件都可以实现这个功能，例如Secret Socks，SSH Tunnerl Manager。Secret Socks不支持自动连接，同时每次都要输入密码，太麻烦了。SSH Tunnerl Manager也是要输入密码。不过SSH Tunnerl Manager有个好处，更改配置后它会把SSH命令都显示出来。原来Mac下SSH直接就可以支持socks代理，大概这样配置：</p>
 
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/career/'>career</a></span>
-</footer>
+<pre><code>ssh -N -p 22 -C -c -D 7070 username@hostname
+</code></pre>
 
+<p>但是这样依然无法保存密码，后来搜索到一个软件sshpass，下载编译只，运行却提示找不到/usr/libexec/ssh-askpass，后来从网上找到一个人的解决方案，发现其实这就是提供密码的脚本，于是直接在里面敲上：</p>
 
-</article>
+<pre><code>#! /bin/sh 
 
+echo yourpassword
+</code></pre>
+
+<p>然后使用</p>
+
+<pre><code>sshpass -pyourpassword ssh -N -p 22 -C -c -D 7070 username@hostname
+</code></pre>
+
+<p>就可以了！sshpass貌似自带断线重连功能，相当给力！</p>
+
+<p>还有就是autoproxy的配置，在Chrome下使用SwitchySharp，在规则列表里加上<a href="https://autoproxy-gfwlist.googlecode.com/svn/trunk/gfwlist.txt">https://autoproxy-gfwlist.googlecode.com/svn/trunk/gfwlist.txt</a>，选择AutoProxy兼容列表即可，当然对应情景模式别忘了选成你配好的本地代理！</p>
+
+<p>最后将启动脚本ln -s到/Library/StartupItems/，至此大功告成。</p>
 </div>
 
+
+  <footer>
+    <p class="meta">
+      
   
+
+<span class="byline author vcard">Posted by <span class="fn">黄亿华</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-05T21:46:00+08:00" pubdate data-updated="true">Jan 5<span>th</span>, 2013</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://flashsword20.github.com/blog/2013/01/05/macshi-yong-ssh-socksdai-li-fan-qiang/" data-via="" data-counturl="http://flashsword20.github.com/blog/2013/01/05/macshi-yong-ssh-socksdai-li-fan-qiang/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/12/17/blackhole-develop-diary/" title="Previous Post: BlackHole开发日记">&laquo; BlackHole开发日记</a>
+      
+      
+    </p>
+  </footer>
 </article>
 
 </div>
